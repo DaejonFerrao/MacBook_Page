@@ -9,58 +9,63 @@ const Perfomance = () => {
     const isMobile = useMediaQuery({ query: '(max-width: 1024px)' });
     const sectionRef = useRef(null);
 
-    useGSAP(() => {
-        const sectionE1 = sectionRef.current;
-        if (!sectionE1) return;
+    useGSAP(
+        () => {
+            const sectionEl = sectionRef.current;
+            if (!sectionEl) return;
 
-        gsap.fromTo(".content p",
-            {
-                opacity: 0,
-                y: 10,
-            },
-            {
-                opacity: 1,
-                y: 0,
-                ease: "power1.out",
+            gsap.fromTo(
+                ".content p",
+                {
+                    opacity: 0,
+                    y: 10,
+                },
+                {
+                    opacity: 1,
+                    y: 0,
+                    ease: "power1.out",
+                    scrollTrigger: {
+                        trigger: ".content p",
+                        start: "top bottom",
+                        end: "top center",
+                        scrub: true,
+                        invalidateOnRefresh: true,
+                    },
+                }
+            )
+
+            if (isMobile) return;
+
+            const tl = gsap.timeline({
+                defaults: { duration: 2, ease: "power1.inOut", overwrite: "auto" },
                 scrollTrigger: {
-                    trigger: ".content p",
+                    trigger: sectionEl,
                     start: "top bottom",
-                    end: "top center",
-                    scrub: true,
+                    end: "bottom top",
+                    scrub: 1,
                     invalidateOnRefresh: true,
                 },
-            }
-        )
-    }, []);
+            });
 
-    if (isMobile) return;
+            performanceImgPositions.forEach((item) => {
+                if (item.id === "p5") return;
 
-    const t1 = gsap.timeline({
-        defaults: { duration: 2, ease: "power1.inOut", overwrite: "auto" },
-        scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top bottom",
-            end: "bottom top",
-            scrub: 1,
-            invalidateOnRefresh: true,
-        }
-    });
+                const selector = `.${item.id}`;
+                const vars = {};
 
-    performanceImgPositions.forEach((item) => {
-        if (item.id === "p5") return;
+                if (typeof item.left === "number") vars.left = `${item.left}%`;
+                if (typeof item.right === "number") vars.right = `${item.right}%`;
+                if (typeof item.bottom === "number") vars.bottom = `${item.bottom}%`;
 
-        const selector = `.${item.id}`;
-        const vars = {};
+                if (item.transform) vars.transform = item.transform;
 
-        if (typeof item.left === "number") vars.left = `${item.left}%`;
-        if (typeof item.right === "number") vars.right = `${item.right}%`;
-        if (typeof item.bottom === "number") vars.bottom = `${item.bottom}%`;
+                tl.to(selector, vars, 0);
+            });
+        },
+        { scope: sectionRef, dependencies: [isMobile] }
 
-        if (item.transform) vars.transform = item.transform;
+    );
 
-        t1.to(selector, vars, 0);
-    });
-    
 
 
     return (
@@ -69,7 +74,7 @@ const Perfomance = () => {
 
 
             <div className="wrapper">
-                {performanceImages.map(( item, index ) => (
+                {performanceImages.map((item, index) => (
                     <img key={index} src={item.src} className={item.id} alt={item.alt || `Performance Image #${index + 1}`} />
                 ))}
             </div>
